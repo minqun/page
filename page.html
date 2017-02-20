@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>分页器</title>
+</head>
+<body>
+  <div id='page'>
+  <!--   <div class='pagePrev pageBtn'>上一页</div>
+    <div class='pageBox'>
+    <div class="pageCot"><span class='page-item'>1</span><span class='page-item-cot'>...</span></div>
+    <div class='pageWrap' id='pageWrap'>
+    <div class='pageLeft' id='pageLeft'>
+      <span class='page-item active'>1</span>
+       <span class='page-item'>2</span>
+        <span class='page-item'>3</span>
+         <span class='page-item'>4</span>
+          <span class='page-item'>5</span>
+           <span class='page-item'>6</span>
+            <span class='page-item'>7</span>
+         <span class='page-item'>8</span>
+          <span class='page-item'>9</span>
+           <span class='page-item'>10</span>
+            <span class='page-item'>11</span>
+            <span class='page-item'>12</span>
+            <span class='page-item'>13</span>
+    </div>
+    </div>
+      <div class='clearfix'></div>
+    </div>
+     <div class='pageNext pageBtn'>下一页</div>
+     <div class='clearfix'></div> -->
+  </div>
+</body>
+<style>
+  #page {
+    height: 40px;
+    font-size: 14px;
+    position: relative;
+    color: #666;
+  }
+  #page .active {
+    font-weight: bold;
+  }
+
+  #page .hide {
+    display: none;
+  }
+  #page .pageBtn{
+    
+    float: left;
+    cursor: pointer;
+    margin: 0 10px;
+    padding: 12px 20px;
+    border: 1px solid #f7f7f7;
+    border-radius: 4px;
+    /*box-sizing: border-box;*/
+  }
+  #page .page-item,.page-item-cot {
+    display: inline-block;
+    text-align: center;
+    padding: 12px 0;
+    float: left;
+    font-size: 14px;
+    cursor: pointer;
+    width: 30px;
+  }
+  #page .page-item:hover {
+    color: #17a1e6;
+  }
+  #page .pageBox {
+    
+    border: 1px solid #f7f7f7;
+    border-radius: 4px;
+    float: left;
+    height: 100%;
+  }
+  #pageLeft {
+    white-space: nowrap;
+    position: absolute;
+  }
+  #page .pageWrap {
+    width: 300px;
+    height: 40px;
+    display: block;
+    position: relative;
+    float: left;
+    overflow: hidden;
+  }
+  #page .pageCot {
+    width: 60px;
+    height: 40px;
+    float: left;
+  }
+  #page .clearfix {
+    clear: both;
+  }
+
+</style>
+<script>
+  // 页数大于1显示上页， 
+  // 页数大于最大页影藏下页
+  // 页数大于5显示1...
+  // 初始 page ,curPage, isPrev, isNextb, isCot
+  var PageBox = function (obj){
+    var page = function Page(obj) {
+      this.el = obj.el ? obj.el: 'page', //'page'
+      this.page = obj.page ? obj.page : 1,//1
+      this.curPage = obj.curPage? obj.curPage: 20,  //13
+      this.box = obj.box? obj.box: 300, //300
+      this.item =obj.item? obj.item : 30, //30
+      this.func = obj.func? obj.func : function(){}
+    }
+    page.prototype.init = function () {
+      id =this.el
+      var that = this
+      var Html = ''
+      Html +="<div class='pagePrev pageBtn'>上一页</div>"
+      Html +="<div class='pageBox'>"
+      Html +="<div class='pageCot'><span class='page-item'>1</span><span class='page-item-cot'>...</span></div>"
+      Html +="<div class='pageWrap' id='pageWrap'>"
+      Html +="<div class='pageLeft' id='pageLeft'>"
+      for (var i= 1; i<= this['curPage']; i++){
+        if (i == 1) {
+          Html +="<span class='page-item active'>" + i + "</span>"
+        } else {
+          Html +="<span class='page-item'>"+ i+"</span>"
+        }
+      }
+      Html +="</div></div>"
+      Html +=" <div class='clearfix'></div></div>"
+      Html +="<div class='pageNext pageBtn'>下一页</div><div class='clearfix'></div>"
+      document.getElementById(id).innerHTML = Html
+
+      document.getElementById('pageLeft').style.width = this.item* this.curPage + 'px'
+      that.pageNum(this)
+      that.next()
+      that.prev()
+      for(var i in that.getClass('page-item')) {
+        that.getClass('page-item')[i].addEventListener('click', function(e){
+           var num = parseInt(e.target.innerHTML)
+           that.page = num
+           that.pageNum(that)
+           that.move(num, that)
+            that.data(that)
+        })
+      }
+    }
+    page.prototype.data = function(that) {
+      return that.func(that.page)
+    }
+    page.prototype.getClass = function (className, parentNode) {
+      var node = null;
+      var temps = [];
+      if (parentNode != undefined) {
+        node = parentNode;
+      } else {
+        node = document;
+      }
+      var all = node.getElementsByTagName('*');
+      for (var i = 0; i < all.length; i ++) {
+        if ((new RegExp('(\\s|^)' +className +'(\\s|$)')).test(all[i].className)) {
+          temps.push(all[i]);
+        }
+      }
+      return temps;
+    }
+    //页移动状态 
+    page.prototype.move = function (n,that) {
+      for(var i in that.getClass('page-item')) {
+         that.getClass('page-item')[i].className = that.getClass('page-item')[i].className.replace(' active', '')
+         
+        }
+      that.getClass('page-item')[n].className = that.getClass('page-item')[n].className + ' active'
+      var pM = that.box
+      var pL  = document.getElementById('pageLeft').clientWidth
+      var offsetX =  that.item * -n
+      if ((offsetX + pM/2 ) >0) {
+        document.getElementById('pageLeft').style.left = 0  + 'px'
+      } else if ( (offsetX + pM/2 ) < 0) {
+        if (-offsetX >= pL - pM/2) {
+          document.getElementById('pageLeft').style.left = -pL + pM + 'px'
+        }else{
+          document.getElementById('pageLeft').style.left = offsetX + pM/2  + 'px'
+        }
+      } 
+
+    }
+    //状态控制
+    page.prototype.pageNum = function (that) {
+      if (that.page < 0) {
+        return
+      }
+      if(that.curPage <= that.page) {
+        that.getClass('pageNext')[0].className = that.getClass('pageNext')[0].className.replace(' hide', '') +' hide'
+        return
+      } else {
+        that.getClass('pageNext')[0].className = that.getClass('pageNext')[0].className.replace(' hide', '')
+      }
+      if( that.page <= 5) {
+         that.getClass('pageCot')[0].className = that.getClass('pageCot')[0].className.replace(' hide', '') + ' hide'
+          
+      } else {
+        that.getClass('pageCot')[0].className = that.getClass('pageCot')[0].className.replace(' hide', '')
+      }
+      if(that.page == that.curPage) {
+          that.getClass('pageNext')[0].className = that.getClass('pageNext')[0].className.replace(' hide', '') +' hide'
+          return false
+        } else {
+          that.getClass('pageNext')[0].className = that.getClass('pageNext')[0].className.replace(' hide','')
+        }
+      
+      if (that.page <=  1) {
+          that.getClass('pagePrev')[0].className = that.getClass('pagePrev')[0].className.replace(' hide', '') +' hide'
+          if (that.page < 1) {
+            return false
+          }
+        } else {
+          that.getClass('pagePrev')[0].className = that.getClass('pagePrev')[0].className.replace(' hide','')
+        
+        }
+    }
+    //下一页
+    page.prototype.next = function() {
+      var that = this
+      that.getClass('pageNext')[0].addEventListener('click', function(){
+      that.page = (that.page >= that.curPage) ? that.curPage: that.page + 1 
+      that.pageNum(that)
+      that.move(that.page,that)
+      that.data(that)
+      
+      })
+    }
+    //上页
+      page.prototype.prev = function() {
+        var that = this
+        that.getClass('pagePrev')[0].addEventListener('click', function(){
+        that.page = (that.page <= 1) ? 1: that.page - 1 
+        that.pageNum(that)
+        that.move(that.page,that)
+        that.data(that)
+      })
+    
+    }
+    var p = new page(obj)
+    p.init()
+
+}
+var pv = new PageBox({
+  el: 'page',
+  page: 1,
+  curPage: 30,
+  box: 300,
+  item:30,
+  func: function (p) {
+      console.log(p)
+  }
+})
+
+
+</script>
+</html>
